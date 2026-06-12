@@ -1,48 +1,66 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
   Post,
-  Put,
+  Body,
+  Patch,
+  Param,
+  Delete,
   Query,
 } from '@nestjs/common';
-import { AccountSetupDto } from './dto/user-account-setup.dto';
 import { UserService } from './services/user.service';
-import { CurrentUser } from 'src/auth/decorators/user.decorator';
-import { User } from '@prisma/client';
+import { Prisma, Role } from 'generated/prisma/client';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-  @Post('account-setup')
-  async setupAccount(
-    @Body() accountSetupDto: AccountSetupDto,
-    @CurrentUser() currentUser: User,
+
+  /**
+   * Endpoint: POST /users
+   * Creates a new user (Driver, Officer, or Admin)
+   */
+  @Post()
+  async createUser(@Body() createUserDto: Prisma.UserCreateInput) {
+    return this.userService.createUser(createUserDto);
+  }
+
+  /**
+   * Endpoint: GET /users
+   * Optional Query: /users?role=DRIVER
+   * Retrieves all users, with an optional filter for specific roles
+   */
+  @Get()
+  async getAllUsers(@Query('role') role?: Role) {
+    return this.userService.getAllUsers(role);
+  }
+
+  /**
+   * Endpoint: GET /users/:id
+   * Retrieves a specific user and their relation data (Fines/Payments) based on role
+   */
+  @Get(':id')
+  async getUserById(@Param('id') id: string) {
+    return this.userService.getUserById(id);
+  }
+
+  /**
+   * Endpoint: PATCH /users/:id
+   * Updates an existing user's information
+   */
+  @Patch(':id')
+  async updateUser(
+    @Param('id') id: string,
+    @Body() updateUserDto: Prisma.UserUpdateInput,
   ) {
-    return this.userService.setAccount(accountSetupDto, currentUser);
+    return this.userService.updateUserById(id, updateUserDto);
   }
 
-  @Get('get-info-single')
-  async getUserInfoHandler(@Query('userId') userId: string) {
-    return await this.userService.getUserById(userId);
-  }
-
-  @Put('update')
-  async updateUserHandler(
-    @Query('userId') userId: string,
-    @Body() updatedUserContent: Partial<User>,
-  ) {
-    return await this.userService.updateUserById(userId, updatedUserContent);
-  }
-
-  @Get('admin/get-all')
-  async getAllUsersHandler() {
-    return await this.userService.getAllUsers();
-  }
-
-  @Delete('admin/delete')
-  async deleteUserHandler(@Query('userId') userId: string) {
-    return await this.userService.deleteUserById(userId);
+  /**
+   * Endpoint: DELETE /users/:id
+   * Securely deletes a user, enforcing referential integrity (e.g., checking for issued fines)
+   */
+  @Delete(':id')
+  async deleteUser(@Param('id') id: string) {
+    return this.userService.deleteUserById(id);
   }
 }

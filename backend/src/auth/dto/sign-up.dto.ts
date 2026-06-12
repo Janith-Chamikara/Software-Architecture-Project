@@ -1,24 +1,24 @@
 import {
   IsDefined,
   IsNotEmpty,
-  IsEmail,
   MinLength,
   IsString,
-  IsOptional,
+  IsEnum,
 } from 'class-validator';
+import { Role } from 'generated/prisma/enums';
 
 export class SignUpDto {
   @IsString()
   @IsNotEmpty()
-  readonly firstName: string;
+  readonly fullName: string;
 
   @IsString()
-  @IsOptional()
-  readonly lastName: string;
+  @IsNotEmpty()
+  readonly phoneNumber: string;
 
+  @IsEnum(Role)
   @IsDefined()
-  @IsEmail()
-  readonly email: string;
+  readonly role: Role;
 
   @IsDefined()
   @IsNotEmpty()

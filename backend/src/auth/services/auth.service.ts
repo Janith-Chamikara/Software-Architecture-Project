@@ -11,13 +11,12 @@ import {
   getHashedPassword,
   thirtyDaysFromNow,
   threeHourFromNow,
+  comparePassword,
 } from 'src/utils/utils';
-import { comparePassword } from 'src/utils/utils';
-
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { User } from 'generated/prisma/client';
+import { Role, User } from 'generated/prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -28,31 +27,42 @@ export class AuthService {
   ) {}
 
   async signUp(signUpDto: SignUpDto) {
-    const { password, email } = signUpDto;
+    const { password, phoneNumber, fullName, role } = signUpDto;
     const hashedPassword = await getHashedPassword(password);
+
     if (!hashedPassword) {
       throw new BadRequestException('Cannot hash the given password');
     }
+
     const isUserExists = await this.prismaService.user.findUnique({
-      where: { email: email },
+      where: { phoneNumber },
     });
+
     if (isUserExists) {
       throw new ConflictException(
-        'The email provided is already in use. Try again with another email',
+        'The phone number provided is already in use. Try again with another number.',
       );
     }
+
     const user = await this.prismaService.user.create({
-      data: { ...signUpDto, password: hashedPassword },
+      data: {
+        fullName,
+        phoneNumber,
+        role,
+        passwordHash: hashedPassword,
+      },
     });
+
     if (!user) {
       throw new BadRequestException(
-        'Error occurred while creating your account.Try again later.',
+        'Error occurred while creating your account. Try again later.',
       );
     }
+
     return this.signIn(user);
   }
 
-  async signIn(user: Omit<User, 'password'>) {
+  async signIn(user: Omit<User, 'passwordHash'>) {
     const payload = { ...user };
     return {
       message: 'Success!',
@@ -64,41 +74,42 @@ export class AuthService {
     };
   }
 
-  async validateUser(email: string, password: string): Promise<any> {
+  async validateUser(phoneNumber: string, password: string): Promise<any> {
     const isUserExists = await this.prismaService.user.findUnique({
-      where: {
-        email: email,
-      },
+      where: { phoneNumber },
     });
+
     if (!isUserExists) {
-      throw new BadRequestException('Invalid email.');
+      throw new BadRequestException('Invalid phone number.');
     }
+
     const isPasswordCorrect = await comparePassword(
       password,
-      isUserExists.password,
+      isUserExists.passwordHash,
     );
+
     if (!isPasswordCorrect) {
       throw new UnauthorizedException('Invalid password');
     }
-    if (isUserExists && isPasswordCorrect) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = isUserExists;
-      return result;
-    }
-    return null;
+
+    const { passwordHash, ...result } = isUserExists;
+    return result;
   }
 
-  generateRefreshToken(payload: Omit<User, 'password'>) {
+  generateRefreshToken(payload: Omit<User, 'passwordHash'>) {
     return this.jwtService.sign(payload, {
       secret: this.configService.getOrThrow('REFRESH_TOKEN_SECRET'),
       expiresIn: thirtyDaysFromNow(),
     });
   }
-  generateAccessToken(payload: Omit<User, 'password'>) {
+
+  generateAccessToken(payload: Omit<User, 'passwordHash'>) {
     return this.jwtService.sign(payload, {
       secret: this.configService.getOrThrow('ACCESS_TOKEN_SECRET'),
       expiresIn:
-        payload.role === 'admin' ? threeHourFromNow() : fifteenMinutesFromNow(),
+        payload.role === Role.ADMIN
+          ? threeHourFromNow()
+          : fifteenMinutesFromNow(),
     });
   }
 
@@ -106,17 +117,21 @@ export class AuthService {
     const decoded = this.jwtService.verify(refreshToken, {
       secret: this.configService.getOrThrow('REFRESH_TOKEN_SECRET'),
     });
+
     const user = await this.prismaService.user.findUnique({
       where: { id: decoded.id },
     });
+
     if (!user) {
       throw new UnauthorizedException('Invalid refresh token');
     }
-    const payload = { ...user };
+
+    const { passwordHash, ...payload } = user;
+
     return {
       accessToken: this.generateAccessToken(payload),
       accessTokenExpiresIn: fifteenMinutesFromNow(),
-      refreshToken: this.generateAccessToken(payload),
+      refreshToken: this.generateRefreshToken(payload),
       refreshTokenExpiresIn: thirtyDaysFromNow(),
     };
   }

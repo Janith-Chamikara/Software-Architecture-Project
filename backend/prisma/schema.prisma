@@ -23,7 +23,7 @@ model User {
   id           String  @id @default(uuid())
   role         Role
   fullName     String  
-  phoneNumber  String  
+  phoneNumber  String  @unique
   passwordHash String  
 
   // Relationships
