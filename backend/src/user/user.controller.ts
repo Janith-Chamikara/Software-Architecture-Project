@@ -8,58 +8,86 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { UserService } from './services/user.service';
-import { Prisma, Role } from 'generated/prisma/client';
+import { Role } from 'generated/prisma/client';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
+@ApiTags('Users')
+@ApiBearerAuth()
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  /**
-   * Endpoint: POST /users
-   * Creates a new user (Driver, Officer, or Admin)
-   */
   @Post()
-  async createUser(@Body() createUserDto: Prisma.UserCreateInput) {
+  @ApiOperation({ summary: 'Create a new user (Driver, Officer, or Admin)' })
+  @ApiResponse({
+    status: 201,
+    description: 'The user has been successfully created.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation failed or missing data.',
+  })
+  async createUser(@Body() createUserDto: CreateUserDto) {
     return this.userService.createUser(createUserDto);
   }
 
-  /**
-   * Endpoint: GET /users
-   * Optional Query: /users?role=DRIVER
-   * Retrieves all users, with an optional filter for specific roles
-   */
   @Get()
+  @ApiOperation({ summary: 'Retrieve a list of all users' })
+  @ApiQuery({
+    name: 'role',
+    enum: Role,
+    required: false,
+    description: 'Filter users by their specific role',
+  })
+  @ApiResponse({ status: 200, description: 'Returns an array of users.' })
   async getAllUsers(@Query('role') role?: Role) {
     return this.userService.getAllUsers(role);
   }
 
-  /**
-   * Endpoint: GET /users/:id
-   * Retrieves a specific user and their relation data (Fines/Payments) based on role
-   */
   @Get(':id')
+  @ApiOperation({ summary: 'Retrieve a specific user by their ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the user object including their related data.',
+  })
+  @ApiResponse({ status: 404, description: 'User not found.' })
   async getUserById(@Param('id') id: string) {
     return this.userService.getUserById(id);
   }
 
-  /**
-   * Endpoint: PATCH /users/:id
-   * Updates an existing user's information
-   */
   @Patch(':id')
+  @ApiOperation({ summary: 'Update an existing user' })
+  @ApiResponse({
+    status: 200,
+    description: 'The user has been successfully updated.',
+  })
+  @ApiResponse({ status: 404, description: 'User not found.' })
   async updateUser(
     @Param('id') id: string,
-    @Body() updateUserDto: Prisma.UserUpdateInput,
+    @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.userService.updateUserById(id, updateUserDto);
   }
 
-  /**
-   * Endpoint: DELETE /users/:id
-   * Securely deletes a user, enforcing referential integrity (e.g., checking for issued fines)
-   */
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a user securely' })
+  @ApiResponse({
+    status: 200,
+    description: 'The user was successfully deleted.',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflict: Cannot delete due to associated records.',
+  })
   async deleteUser(@Param('id') id: string) {
     return this.userService.deleteUserById(id);
   }

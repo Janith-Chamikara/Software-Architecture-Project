@@ -1,16 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsDefined,
-  IsNotEmpty,
-  MinLength,
-  IsString,
-  IsEnum,
-} from 'class-validator';
-import { Role } from 'generated/prisma/enums';
+import { IsString, IsNotEmpty, IsEnum, MinLength } from 'class-validator';
+import { Role } from 'generated/prisma/client';
 
-export class SignUpDto {
+export class CreateUserDto {
   @ApiProperty({
-    example: 'Janith Chamikara',
+    example: 'Nimal Perera',
     description: 'The full name of the user',
   })
   @IsString()
@@ -27,19 +21,18 @@ export class SignUpDto {
 
   @ApiProperty({
     enum: Role,
-    example: Role.DRIVER,
-    description: 'The system role of the user (DRIVER, OFFICER, or ADMIN)',
+    example: Role.OFFICER,
+    description: 'The system role (DRIVER, OFFICER, or ADMIN)',
   })
   @IsEnum(Role)
-  @IsDefined()
   readonly role: Role;
 
   @ApiProperty({
-    example: 'strongpassword123',
-    description: 'Password must be at least 8 characters long',
+    example: 'hashed_password_string',
+    description: 'The hashed password for the user',
   })
-  @IsDefined()
+  @IsString()
   @IsNotEmpty()
   @MinLength(8)
-  readonly password: string;
+  readonly passwordHash: string;
 }
