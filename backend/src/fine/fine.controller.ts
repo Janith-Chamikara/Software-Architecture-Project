@@ -16,6 +16,7 @@ import {
 } from '@nestjs/swagger';
 import { FineService } from './fine.service';
 import { CreateFineDto } from './dto/create-fine.dto';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @ApiTags('Fines')
 @Controller('fines')
@@ -48,6 +49,7 @@ export class FineController {
    * Used by the Driver's mobile app or web portal to fetch fine details.
    */
   @Get('lookup')
+  @Public()
   @ApiOperation({ summary: 'Look up fine details before payment' })
   @ApiQuery({
     name: 'ref',
