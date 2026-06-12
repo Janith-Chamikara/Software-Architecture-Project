@@ -1,118 +1,93 @@
 import {
-  BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
+  InternalServerErrorException,
+  ConflictException,
 } from '@nestjs/common';
+import { Prisma, Role, User } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AccountSetupDto } from '../dto/user-account-setup.dto';
-import { User } from '@clerk/backend';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async setAccount(accountSetupDto: AccountSetupDto, currentUser: User) {
-    console.log(accountSetupDto);
-    if (accountSetupDto.usage === 'PERSONAL') {
-      const jobField = accountSetupDto?.jobField;
-      currentUser.job = jobField;
-      await this.updateUserById(currentUser.id, currentUser);
-    } else {
-      const companyName = accountSetupDto.companyName;
-      const industryType = accountSetupDto.industryType;
-      const numberOfEmployees = accountSetupDto.numberOfEmployees;
-
-      await this.updateUserById(currentUser.id, {
-        usage: 'business',
-        companyName,
-        industryType,
-        numberOfEmployees,
+  /**
+   * Create a new user (Driver, Officer, or Admin)
+   */
+  async createUser(data: Prisma.UserCreateInput): Promise<User> {
+    try {
+      return await this.prismaService.user.create({
+        data,
       });
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to create user');
     }
-    //workspace
-    const workspaceName = accountSetupDto.workspace.name;
-    const workspaceDetails = accountSetupDto.workspace.description;
-    const workspace = await this.workspaceService.createWorkspace({
-      name: workspaceName,
-      description: workspaceDetails,
-      ownerId: currentUser.id,
-    });
-    currentUser.isInitialSetupCompleted = true;
-    await this.updateUserById(currentUser.id, {
-      isInitialSetupCompleted: true,
-    });
-    return {
-      workspace,
-      message: 'Congratulations! Your account has been successfully set up.',
-    };
   }
 
-  async getUserById(id: string) {
-    const isUserExists = await this.prismaService.user.findUnique({
-      where: { id: id },
-    });
-    if (!isUserExists) {
-      throw new BadRequestException('User with the provided id does not exist');
-    }
-    return isUserExists;
-  }
-
-  async updateUserById(id: string, updatedUserContent: Partial<User>) {
-    const isUserExists = await this.getUserById(id);
-    if (!isUserExists) {
-      throw new NotFoundException('User not found');
-    }
-    const updatedUser = await this.prismaService.user.update({
-      where: {
-        id: isUserExists.id,
+  /**
+   * Retrieve a single user by ID
+   * Includes dynamic relation loading based on their role
+   */
+  async getUserById(id: string): Promise<User> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id },
+      include: {
+        // Only include payments if they are a driver, or issued fines if they are an officer
+        payments: true,
+        issuedFines: true,
       },
-      data: updatedUserContent,
     });
 
-    if (!updatedUser) {
+    if (!user) {
+      throw new NotFoundException('User with the provided ID does not exist');
+    }
+
+    return user;
+  }
+
+  /**
+   * Retrieve all users, optionally filtered by Role
+   */
+  async getAllUsers(role?: Role): Promise<User[]> {
+    return this.prismaService.user.findMany({
+      where: role ? { role } : undefined,
+    });
+  }
+
+  /**
+   * Update existing user information
+   */
+  async updateUserById(
+    id: string,
+    data: Prisma.UserUpdateInput,
+  ): Promise<User> {
+    // Verify user exists first
+    await this.getUserById(id);
+
+    try {
+      return await this.prismaService.user.update({
+        where: { id },
+        data,
+      });
+    } catch (error) {
       throw new InternalServerErrorException(
-        'Error occurred during updating user',
+        'Error occurred while updating user',
       );
     }
-    return updatedUser;
   }
 
-  async deleteUserById(userId: string) {
-    if (!userId) {
-      throw new NotFoundException('Cannot find user Id');
-    }
-
-    const workspaces = await this.prismaService.workspace.findMany({
-      where: {
-        ownerId: userId,
-      },
-    });
-
-    if (workspaces.length > 0) {
-      await this.prismaService.testimonial.deleteMany({
-        where: {
-          workspaceId: {
-            in: workspaces.map((workspace) => workspace.id),
-          },
-        },
+  /**
+   * Delete a user securely
+   * Handles relation constraints (Fines and Payments)
+   */
+  async deleteUserById(id: string): Promise<User> {
+    try {
+      return await this.prismaService.user.delete({
+        where: { id },
       });
+    } catch (error) {
+      if (error instanceof ConflictException) throw error;
+      throw new InternalServerErrorException('Failed to delete user');
     }
-
-    await this.prismaService.workspace.deleteMany({
-      where: {
-        ownerId: userId,
-      },
-    });
-
-    return await this.prismaService.user.delete({
-      where: {
-        id: userId,
-      },
-    });
-  }
-
-  async getAllUsers() {
-    return this.prismaService.user.findMany();
   }
 }
