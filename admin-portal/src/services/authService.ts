@@ -1,5 +1,5 @@
 import axiosClient from '../api/axiosClient';
-import { AuthResponse } from '../models/auth';
+import type { AuthResponse } from '../models/auth';
 
 export const authService = {
   login: async (phoneNumber: string, password: string): Promise<AuthResponse> => {
