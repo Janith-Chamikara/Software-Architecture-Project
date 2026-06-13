@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // The base URL for the backend API.
 // In a production app, this should come from an environment variable (e.g., import.meta.env.VITE_API_URL).
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'http://localhost:3000/api';
 
 const axiosClient = axios.create({
   baseURL: API_BASE_URL,
