@@ -27,8 +27,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (phoneNumber: string, password: string) => {
     try {
       const data = await authService.login(phoneNumber, password);
-      if (data.access_token) {
-        localStorage.setItem('admin_access_token', data.access_token);
+      if (data.accessToken) {
+        localStorage.setItem('admin_access_token', data.accessToken);
         setIsAuthenticated(true);
       }
     } catch (error) {
