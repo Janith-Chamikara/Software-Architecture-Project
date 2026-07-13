@@ -12,6 +12,9 @@ export default function AppInput({
   autoCapitalize = "none",
   icon,
   hint,
+  returnKeyType,
+  onSubmitEditing,
+  blurOnSubmit,
 }) {
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(secureTextEntry);
@@ -34,6 +37,9 @@ export default function AppInput({
           autoCapitalize={autoCapitalize}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
+          returnKeyType={returnKeyType}
+          onSubmitEditing={onSubmitEditing}
+          blurOnSubmit={blurOnSubmit}
         />
         {secureTextEntry ? (
           <TouchableOpacity onPress={() => setHidden(!hidden)} style={styles.eyeBtn}>
