@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,9 @@ export default function RegisterScreen({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const phoneRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmPasswordRef = useRef(null);
 
   const handleRegister = async () => {
     setError("");
@@ -91,16 +94,22 @@ export default function RegisterScreen({ navigation }) {
             onChangeText={setFullName}
             placeholder="As on your NIC"
             autoCapitalize="words"
+            returnKeyType="next"
+            onSubmitEditing={() => phoneRef.current?.focus()}
           />
           <AppInput
+            ref={phoneRef}
             label="Phone Number"
             icon="📱"
             value={phone}
             onChangeText={setPhone}
             placeholder="077 123 4567"
             keyboardType="phone-pad"
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
           />
           <AppInput
+            ref={passwordRef}
             label="Password"
             icon="🔒"
             value={password}
@@ -108,14 +117,19 @@ export default function RegisterScreen({ navigation }) {
             placeholder="Min. 8 characters"
             secureTextEntry
             hint="Use a strong password to protect your account"
+            returnKeyType="next"
+            onSubmitEditing={() => confirmPasswordRef.current?.focus()}
           />
           <AppInput
+            ref={confirmPasswordRef}
             label="Confirm Password"
             icon="✅"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             placeholder="Re-enter password"
             secureTextEntry
+            returnKeyType="done"
+            onSubmitEditing={handleRegister}
           />
 
           <View style={styles.roleTag}>
