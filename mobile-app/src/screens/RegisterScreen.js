@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import Screen from '../components/Screen';
 import Card from '../components/Card';
@@ -6,7 +6,6 @@ import AppInput from '../components/AppInput';
 import AppButton from '../components/AppButton';
 import { colors } from '../theme/theme';
 import api from '../api/api';
-
 export default function RegisterScreen({ navigation }) {
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -14,6 +13,9 @@ export default function RegisterScreen({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const phoneNumberRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmPasswordRef = useRef(null);
 
   const handleRegister = async () => {
     const cleanName = fullName.trim();
@@ -72,11 +74,44 @@ export default function RegisterScreen({ navigation }) {
         
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <AppInput label="Full Name" placeholder="e.g., Perera" value={fullName} onChangeText={setFullName} />
-        <AppInput label="Phone Number" placeholder="e.g., 0771234567" value={phoneNumber} onChangeText={setPhoneNumber} keyboardType="numeric" />
-        <AppInput label="Password" placeholder="Minimum 6 characters" value={password} onChangeText={setPassword} secureTextEntry />
-        <AppInput label="Confirm Password" placeholder="Re-enter password" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
-
+        <AppInput
+          label="Full Name"
+          placeholder="e.g., Perera"
+          value={fullName}
+          onChangeText={setFullName}
+          returnKeyType="next"
+          onSubmitEditing={() => phoneNumberRef.current?.focus()}
+        />
+        <AppInput
+          ref={phoneNumberRef}
+          label="Phone Number"
+          placeholder="e.g., 0771234567"
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          keyboardType="numeric"
+          returnKeyType="next"
+          onSubmitEditing={() => passwordRef.current?.focus()}
+        />
+        <AppInput
+          ref={passwordRef}
+          label="Password"
+          placeholder="Minimum 6 characters"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          returnKeyType="next"
+          onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+        />
+        <AppInput
+          ref={confirmPasswordRef}
+          label="Confirm Password"
+          placeholder="Re-enter password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+          returnKeyType="done"
+          onSubmitEditing={handleRegister}
+        />
         <AppButton title="Sign Up" onPress={handleRegister} loading={loading} />
       </Card>
     </Screen>

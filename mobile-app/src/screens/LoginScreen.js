@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const passwordRef = useRef(null);
 
   const handleLogin = async () => {
     setError("");
@@ -84,14 +85,19 @@ export default function LoginScreen({ navigation }) {
             onChangeText={setPhone}
             placeholder="077 123 4567"
             keyboardType="phone-pad"
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
           />
           <AppInput
+            ref={passwordRef}
             label="Password"
             icon="🔒"
             value={password}
             onChangeText={setPassword}
             placeholder="Enter password"
             secureTextEntry
+            returnKeyType="done"
+            onSubmitEditing={handleLogin}
           />
 
           <AppButton
