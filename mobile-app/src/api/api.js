@@ -1,7 +1,8 @@
 import axios from "axios";
 import { getAccessToken } from "../storage/tokenStorage";
 
-export const BASE_URL = "http://localhost:3000/api";
+// Android emulator maps 10.0.2.2 to the host machine's localhost
+export const BASE_URL = "http://10.0.2.2:3000/api";
 
 const api = axios.create({
   baseURL: BASE_URL,
