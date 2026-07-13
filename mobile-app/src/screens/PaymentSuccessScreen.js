@@ -6,6 +6,7 @@ import {
   ScrollView,
   Animated,
   StatusBar,
+  Share,
 } from "react-native";
 import AppButton from "../components/AppButton";
 import { colors, spacing, shadow, typography } from "../theme/theme";
@@ -57,6 +58,17 @@ export default function PaymentSuccessScreen({ navigation, route }) {
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  const handleShareReceipt = () => {
+    Share.share({
+      message:
+        `Traffic Fine Payment Receipt\n\n` +
+        `Fine Reference: ${reference}\n` +
+        `Transaction ID: ${transactionId}\n` +
+        `Amount Paid: ${formatAmount(amount)}\n` +
+        `Date & Time: ${now}`,
+    });
+  };
 
   return (
     <View style={styles.root}>
@@ -125,6 +137,12 @@ export default function PaymentSuccessScreen({ navigation, route }) {
         </View>
 
         {/* Actions */}
+        <AppButton
+          title="Share Receipt"
+          icon="📤"
+          onPress={handleShareReceipt}
+          variant="outline"
+        />
         <AppButton
           title="Back to Home"
           icon="🏠"
