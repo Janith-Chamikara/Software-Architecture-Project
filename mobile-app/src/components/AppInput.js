@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, forwardRef } from "react";
 import { TextInput, StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { colors, radius, spacing } from "../theme/theme";
 
-export default function AppInput({
+const AppInput = forwardRef(function AppInput({
   label,
   value,
   onChangeText,
@@ -15,7 +15,7 @@ export default function AppInput({
   returnKeyType,
   onSubmitEditing,
   blurOnSubmit,
-}) {
+}, ref) {
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(secureTextEntry);
 
@@ -27,6 +27,7 @@ export default function AppInput({
       <View style={[styles.inputWrap, focused && styles.inputWrapFocused]}>
         {icon ? <Text style={styles.icon}>{icon}</Text> : null}
         <TextInput
+          ref={ref}
           style={styles.input}
           value={value}
           onChangeText={onChangeText}
@@ -50,7 +51,9 @@ export default function AppInput({
       {hint ? <Text style={styles.hint}>{hint}</Text> : null}
     </View>
   );
-}
+});
+
+export default AppInput;
 
 const styles = StyleSheet.create({
   container: {
