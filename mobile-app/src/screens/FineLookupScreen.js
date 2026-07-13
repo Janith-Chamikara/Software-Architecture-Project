@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ export default function FineLookupScreen({ navigation }) {
   const [category, setCategory] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const categoryRef = useRef(null);
 
   const handleLookup = async () => {
     setError("");
@@ -78,8 +79,11 @@ export default function FineLookupScreen({ navigation }) {
               placeholder="e.g. FINE001"
               autoCapitalize="characters"
               hint="Found on the top of your fine notice"
+              returnKeyType="next"
+              onSubmitEditing={() => categoryRef.current?.focus()}
             />
             <AppInput
+              ref={categoryRef}
               label="Category Identifier"
               icon="📂"
               value={category}
@@ -87,6 +91,8 @@ export default function FineLookupScreen({ navigation }) {
               placeholder="e.g. SPEEDING"
               autoCapitalize="characters"
               hint="The violation type code"
+              returnKeyType="done"
+              onSubmitEditing={handleLookup}
             />
           </View>
 
