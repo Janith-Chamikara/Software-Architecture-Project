@@ -53,7 +53,9 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.headerBadge}>
           <Text style={styles.headerBadgeIcon}>🛡️</Text>
-          <Text style={styles.headerBadgeText}>Sri Lanka Police · Official System</Text>
+          <Text style={styles.headerBadgeText}>
+            Sri Lanka Police · Official System
+          </Text>
         </View>
       </View>
 
@@ -91,7 +93,12 @@ export default function HomeScreen({ navigation }) {
           <QuickInfoItem icon="🔍" title="Lookup" value="Find your fine" />
           <QuickInfoItem icon="📋" title="Review" value="Check details" />
           <QuickInfoItem icon="💳" title="Pay" value="Secure payment" />
-          <QuickInfoItem icon="✅" title="Done" value="Instant confirm" color={colors.success} />
+          <QuickInfoItem
+            icon="✅"
+            title="Done"
+            value="Instant confirm"
+            color={colors.success}
+          />
         </View>
 
         {/* Notice card */}
@@ -100,7 +107,8 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.noticeBody}>
             <Text style={styles.noticeTitle}>Have your fine details ready</Text>
             <Text style={styles.noticeText}>
-              You will need the fine reference number and category identifier from your fine notice.
+              You will need the fine reference number and category identifier
+              from your fine notice.
             </Text>
           </View>
         </View>
@@ -113,6 +121,25 @@ export default function HomeScreen({ navigation }) {
             variant="outline"
             icon="🚪"
           />
+          // Add these items to your Home Screen render function
+
+          <View style={styles.section}>
+            <AppButton
+              title="My Profile"
+              variant="outline"
+              icon="👤"
+              onPress={() => navigation.navigate("Profile")}
+            />
+
+            <AppButton
+              title="Payment History"
+              variant="outline"
+              icon="📜"
+              onPress={() => navigation.navigate("PaymentHistory")}
+              style={{ marginTop: 10 }}
+            />
+
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -123,6 +150,14 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.primary,
+  },
+  section: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    marginTop: 8,
+  },
+  buttonSpacing: {
+    marginTop: 10,
   },
   header: {
     paddingTop: 56,
