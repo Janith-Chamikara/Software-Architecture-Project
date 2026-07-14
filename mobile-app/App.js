@@ -9,6 +9,8 @@ import FineLookupScreen from "./src/screens/FineLookupScreen";
 import FineDetailsScreen from "./src/screens/FineDetailsScreen";
 import PaymentScreen from "./src/screens/PaymentScreen";
 import PaymentSuccessScreen from "./src/screens/PaymentSuccessScreen";
+import ProfileScreen from "./src/screens/ProfileScreen";
+import PaymentHistoryScreen from "./src/screens/PaymentHistoryScreen";
 import { colors } from "./src/theme/theme";
 
 const Stack = createNativeStackNavigator();
@@ -74,6 +76,8 @@ export default function App() {
           component={PaymentSuccessScreen}
           options={{ headerShown: false, gestureEnabled: false }}
         />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
+<Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
