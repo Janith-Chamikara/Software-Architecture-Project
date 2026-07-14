@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  DRIVER
+  OFFICER
+  ADMIN
+}
+
+enum FineStatus {
+  PENDING
+  PAID
+}
+
+model User {
+  id           String  @id @default(uuid())
+  role         Role
+  fullName     String  
+  phoneNumber  String  @unique
+  passwordHash String  
+
+  // Relationships
+  issuedFines  Fine[]    @relation("OfficerFines")
+  payments     Payment[] @relation("UserPayments")
+
+  @@map("users")
+}
+
+model Fine {
+  referenceNumber    String     @id 
+  categoryIdentifier String     
+  amount             Decimal
+  issuedAt           DateTime   @default(now()) 
+  status             FineStatus @default(PENDING)
+  driverNic          String?    
+  district           String
+
+  // Relationships
+  officerId          String     
+  officer            User       @relation("OfficerFines", fields: [officerId], references: [id])
+  payment            Payment?   
+
+  @@map("fines")
+}
+
+model Payment {
+  id             String   @id @default(uuid())
+  amountPaid     Decimal  
+  paidAt         DateTime @default(now()) 
+  paymentMethod  String   
+  transactionId  String   @unique 
+
+  // Relationships
+  fineReference  String   @unique 
+  fine           Fine     @relation(fields: [fineReference], references: [referenceNumber])
+  
+  userId         String   
+  user           User     @relation("UserPayments", fields: [userId], references: [id])
+
+  @@map("payments")
+}
